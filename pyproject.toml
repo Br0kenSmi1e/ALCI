@@ -1,0 +1,25 @@
+[project]
+name = "alci"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "LongliZheng", email = "lzheng228@connect.hkust-gz.edu.cn" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "jax>=0.8.2",
+    "optax>=0.2.6",
+]
+
+[project.scripts]
+alci = "alci:main"
+
+[build-system]
+requires = ["uv_build>=0.8.4,<0.9.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
