@@ -11,13 +11,6 @@ def test_construct():
     assert d.vals.shape == (0, )
     assert d.pivot_pos.shape == (2, 0)
 
-def test_add_data():
-    g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([2, 2]))
-    d = DataSet(g)
-    d.add_data(jnp.array([[0, 0], [0, 1], [1, 0]]), jnp.array([1.0, 0.0, 0.0]))
-    assert jnp.all(d.points[0] == jnp.array([0, 0]))
-    assert jnp.isclose(d.vals[0], jnp.array(1.0))
-
 def test_isnewpivot():
     g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([2, 2]))
     d = DataSet(g)
@@ -26,16 +19,22 @@ def test_isnewpivot():
     assert d.isnewpivot(jnp.array([1, 0]))
     assert d.isnewpivot(jnp.array([1, 1]))
 
-    d.update_pivot(jnp.array([0, 0]))
+    d.pivot_pos = d.add_pivot(jnp.array([0, 0]))
     assert ~d.isnewpivot(jnp.array([0, 0]))
     assert ~d.isnewpivot(jnp.array([0, 1]))
     assert ~d.isnewpivot(jnp.array([1, 0]))
     assert d.isnewpivot(jnp.array([1, 1]))
 
+def test_add_pivot():
+    g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([2, 2]))
+    d = DataSet(g)
+    p_pos = d.add_pivot(jnp.array([0, 0]))
+    assert jnp.all(p_pos == jnp.array([[0], [0]]))
+
 def test_new_points():
     g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([2, 2]))
     d = DataSet(g)
-    d.update_pivot(jnp.array([0, 0]))
+    d.pivot_pos = d.add_pivot(jnp.array([0, 0]))
     np = d.new_points(jnp.array([0, 0]))
     assert jnp.all(np == jnp.array([[1, 0], [0, 1], [0, 0]]))
 
@@ -44,3 +43,15 @@ def test_query():
     g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([2, 2]))
     d = DataSet(g)
     assert jnp.allclose(d.query(f, jnp.array([[0, 0], [1, 1]])), jnp.array([0.0, 2.0]))
+
+def test_update():
+    g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([10, 10]))
+    d = DataSet(g)
+    f = lambda x: jnp.linalg.norm(x) ** 2
+    d.update(f, jnp.array([0, 0]))
+    assert d.points.shape == (19, 2)
+    assert d.vals.shape == (19, )
+
+    d.update(f, jnp.array([0, 1]))
+    assert d.points.shape == (19, 2)
+    assert d.vals.shape == (19, )

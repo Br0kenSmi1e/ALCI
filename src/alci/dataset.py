@@ -14,10 +14,6 @@ class DataSet:
     def add_pivot(self, pivot: jax.Array):
         return jax.vmap(jnp.append, (0, 0), 0)(self.pivot_pos, pivot)
     
-    def update_pivot(self, pivot: jax.Array):
-        if self.isnewpivot(pivot):
-            self.pivot_pos = self.add_pivot(pivot)
-    
     def new_points(self, pivot: jax.Array):
         new_points = [pivot.at[i].set(j) \
             for i in range(self.grid.dim) \
@@ -31,6 +27,10 @@ class DataSet:
         vals = jax.vmap(f)(space_points)
         return vals
     
-    def add_data(self, points: jax.Array, vals: jax.Array):
-        self.points = jnp.append(self.points, points)
-        self.vals = jnp.append(self.vals, vals)
+    def update(self, f: callable, pivot: jax.Array):
+        if self.isnewpivot(pivot):
+            self.pivot_pos = self.add_pivot(pivot)
+            np = self.new_points(pivot)
+            v = self.query(f, np)
+            self.points = jnp.append(self.points, np, axis=0)
+            self.vals = jnp.append(self.vals, v)
