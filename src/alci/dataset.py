@@ -19,7 +19,7 @@ class DataSet:
         new_points = [pivot.at[i].set(j) \
             for i in range(self.grid.dim) \
             for j in range(self.grid.num[i]) \
-            if not j in self.pivot_pos]
+            if ~jnp.isin(j, self.pivot_pos[i])]
         new_points.append(pivot)
         return jnp.array(new_points)
     

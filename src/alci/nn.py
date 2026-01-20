@@ -15,7 +15,7 @@ class MLP(nnx.Module):
             x = layer(x)
             if i < len(self.layers) - 1:
                 x = self.activation(x)
-        return x
+        return x.reshape(-1)
 
 @nnx.jit
 def train_step(model: MLP, optimizer, x: jax.Array, y: jax.Array):

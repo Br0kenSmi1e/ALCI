@@ -19,7 +19,7 @@ def test_nn_call():
     mlp = MLP([2, 4, 1], nnx.Rngs(params=rng))
     batched_input = jax.random.normal(rng, (100, 2))
     batched_output = mlp(batched_input)
-    assert batched_output.shape == (100, 1)
+    assert batched_output.shape == (100, )
 
 def test_training():
     rng = jax.random.PRNGKey(42)
