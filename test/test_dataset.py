@@ -8,6 +8,7 @@ def test_construct():
     g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([10, 10]))
     d = DataSet(g)
     assert d.points.shape == (0, 2)
+    assert d.space_points.shape == (0, 2)
     assert d.vals.shape == (0, )
     assert d.pivot_pos.shape == (2, 0)
 
@@ -42,7 +43,9 @@ def test_query():
     f = lambda x: jnp.linalg.norm(x) ** 2
     g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([2, 2]))
     d = DataSet(g)
-    assert jnp.allclose(d.query(f, jnp.array([[0, 0], [1, 1]])), jnp.array([0.0, 2.0]))
+    sp, v = d.query(f, jnp.array([[0, 0], [1, 1]]))
+    assert jnp.allclose(sp, jnp.array([[0.0, 0.0], [1.0, 1.0]]))
+    assert jnp.allclose(v, jnp.array([0.0, 2.0]))
 
 def test_update():
     g = UniformGrid(2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]), jnp.array([10, 10]))
@@ -50,8 +53,10 @@ def test_update():
     f = lambda x: jnp.linalg.norm(x) ** 2
     d.update(f, jnp.array([0, 0]))
     assert d.points.shape == (19, 2)
+    assert d.space_points.shape == (19, 2)
     assert d.vals.shape == (19, )
 
     d.update(f, jnp.array([0, 1]))
     assert d.points.shape == (19, 2)
+    assert d.space_points.shape == (19, 2)
     assert d.vals.shape == (19, )

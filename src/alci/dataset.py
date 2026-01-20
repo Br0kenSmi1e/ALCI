@@ -5,6 +5,7 @@ class DataSet:
     def __init__(self, grid):
         self.grid = grid
         self.points = jnp.zeros((0, grid.dim), dtype=int)
+        self.space_points = jnp.zeros((0, grid.dim), dtype=float)
         self.vals = jnp.zeros((0, ), dtype=float)
         self.pivot_pos = jnp.zeros((grid.dim, 0), dtype=int)
     
@@ -25,12 +26,13 @@ class DataSet:
     def query(self, f: callable, new_points: jax.Array):
         space_points = jax.vmap(self.grid.grid2space)(new_points)
         vals = jax.vmap(f)(space_points)
-        return vals
+        return space_points, vals
     
     def update(self, f: callable, pivot: jax.Array):
         if self.isnewpivot(pivot):
             self.pivot_pos = self.add_pivot(pivot)
             np = self.new_points(pivot)
-            v = self.query(f, np)
+            sp, v = self.query(f, np)
             self.points = jnp.append(self.points, np, axis=0)
+            self.space_points = jnp.append(self.space_points, sp, axis=0)
             self.vals = jnp.append(self.vals, v)
