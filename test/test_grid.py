@@ -41,3 +41,10 @@ def test_quantics_grid2space():
     assert jnp.allclose(g.grid2space(jnp.array([1, 1, 1, 1, 1, 1, 1, 1])), g.end)
     assert jnp.allclose(g.grid2space(jnp.array([0, 1, 0, 1, 0, 1, 0, 1])), jnp.array([0.0, 1.0]))
     assert jnp.allclose(g.grid2space(jnp.array([1, 0, 1, 0, 1, 0, 1, 0])), jnp.array([1.0, 0.0]))
+
+def test_uniform_to_quantics():
+    g = QuanticsGrid(2, 4, 2, jnp.array([0.0, 0.0]), jnp.array([1.0, 1.0]))
+    assert jnp.all(g.uniform2grid(jnp.array([0, 0])) == jnp.array([0, 0, 0, 0, 0, 0, 0, 0]))
+    assert jnp.all(g.uniform2grid(jnp.array([15, 15])) == jnp.array([1, 1, 1, 1, 1, 1, 1, 1]))
+    assert jnp.all(g.uniform2grid(jnp.array([15, 0])) == jnp.array([1, 0, 1, 0, 1, 0, 1, 0]))
+    assert jnp.all(g.uniform2grid(jnp.array([8, 0])) == jnp.array([0, 0, 0, 0, 0, 0, 1, 0]))

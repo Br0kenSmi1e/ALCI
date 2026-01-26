@@ -25,15 +25,28 @@ class QuanticsGrid:
         base
         self.base = base
         self.nbit = nbit
+        self.ngrids = jnp.array([base] * (nbit * dim))
         self.dim = dim
         self.start = start
         self.end = end
     
-    def grid2space(self, grid_point: jax.Array) -> jax.Array:
+    def grid2uniform(self, grid_point: jax.Array) -> jax.Array:
         weight = jnp.array([[n for n in range(self.nbit)] for d in range(self.dim)])
         bits = jnp.array([[grid_point[self.dim*n+d] for n in range(self.nbit)] for d in range(self.dim)])
-        g = jnp.sum(bits * (self.base ** weight), axis=1)
-        return self.start + (self.end - self.start) * g / (self.base ** self.nbit - 1)
+        return jnp.sum(bits * (self.base ** weight), axis=1)
+    
+    def uniform2grid(self, u_point: jax.Array) -> jax.Array:
+        def int2quantics(n, b, w):
+            digits = []
+            for _ in range(w):
+                digits.append(n % b)
+                n //= b
+            return digits
+        weight = [int2quantics(n, self.base, self.nbit) for n in u_point]
+        return jnp.array([weight[d][n] for n in range(self.nbit) for d in range(self.dim)])
+    
+    def grid2space(self, grid_point: jax.Array) -> jax.Array:
+        return self.start + (self.end - self.start) * self.grid2uniform(grid_point) / (self.base ** self.nbit - 1)
     
     def all_grid_pts(self) -> jax.Array:
         return jnp.stack(jnp.meshgrid(*[jnp.arange(self.base) for _ in range(self.nbit * self.dim)], indexing='ij'), axis=-1).reshape(-1, self.nbit * self.dim)

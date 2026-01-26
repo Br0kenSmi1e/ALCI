@@ -36,8 +36,9 @@ class PivotList():
         return None
     
     def add_pivot(self, pivot: jax.Array):
-        if self.isnewpivot(pivot):
-            self._add_pivot(pivot)
+        # if self.isnewpivot(pivot):
+        #     self._add_pivot(pivot)
+        self._add_pivot(pivot)
     
     def dim0slice(self):
         return [jnp.array([[jnp.hstack([r, c]) for c in cs] for r in rs]) \
@@ -73,15 +74,18 @@ class TCI():
         dim0idx = self.pivot_list.dim0slice()
         self.slices0 = [jax.vmap(jax.vmap(f))(i) for i in dim0idx]
     
-    def update_sitetensors(self):
+    def update_sitetensors(self, tol=1e-8):
 
-        @jax.jit
-        def single_site_contract(t: jax.Array, p: jax.Array):
+        # @jax.jit
+        def single_site_contract(t: jax.Array, p: jax.Array, tol: float):
             mat_t = jnp.reshape(t, (-1, t.shape[2]))
-            new_t = jnp.linalg.solve(p.T, mat_t.T).T
-            return jnp.reshape(new_t, t.shape)
+            # new_t = jnp.linalg.solve(p.T, mat_t.T).T
+            u, s, vt = jnp.linalg.svd(p, full_matrices=False)
+            rank = jnp.sum(s / s[0] > tol)
+            new_t = mat_t @ vt[:rank, :].T @ jnp.diag(1 / s[:rank]) @ u[:, :rank].T
+            return jnp.reshape(new_t, (t.shape[0], t.shape[1], -1))
         
-        self.sitetensors = [single_site_contract(t, p) for t, p in zip(self.slices1[:-1], self.slices0)]
+        self.sitetensors = [single_site_contract(t, p, tol) for t, p in zip(self.slices1[:-1], self.slices0)]
         self.sitetensors.append(self.slices1[-1])
 
     def __call__(self, gp: jax.Array) -> jax.Array:
